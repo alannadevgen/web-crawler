@@ -1,4 +1,4 @@
-# Web crawler :desktop:
+# Web crawler :computer:
 
 The aim of this project is to perform a web crawler starting with the [ENSAI's url](https://ensai.fr).
 
