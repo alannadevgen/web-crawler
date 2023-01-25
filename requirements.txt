@@ -1,2 +1,4 @@
-beautifulsoup4
+beautifulsoup4==4.11.1
 python-dotenv
+ultimate_sitemap_parser==0.5
+validators==0.20.0
