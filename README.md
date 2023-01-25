@@ -12,11 +12,22 @@ git clone https://github.com/alannagenin/web-crawlergit
 cd web-crawler
 ```
 
-Then, we will set a virtual environment.
+Then, we will set a virtual environment and download the necessary packages.
 ```python
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+```
+Before lanching the crawler, you should create an `.env` file containing the default values:
+```
+URL=https://ensai.fr/
+MAX_URL = 50
+```
+
+Finally, we will launch the crawler:
+```python
+python3 -m main
+# or python3 main.py
 ```
 
 ## Areas of improvement
