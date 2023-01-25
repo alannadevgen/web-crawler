@@ -6,6 +6,7 @@ import requests
 from time import sleep
 from urllib.parse import urljoin, urlparse
 from urllib.robotparser import RobotFileParser
+import validators
 load_dotenv()
 
 
@@ -15,7 +16,7 @@ logging.basicConfig(
 
 class Crawler:
 
-    def __init__(self, urls=[], max_url=os.environ.get("MAX_URL"), wait_time):
+    def __init__(self, urls=[], max_url=os.environ.get("MAX_URL"), wait_time=5):
         self.__visited_urls = []
         self.__allowed_urls = []
         self.__urls_to_visit = urls
@@ -23,18 +24,34 @@ class Crawler:
         self.wait_time = wait_time
     
     def get_visited_urls(self):
+        '''
+        Returns the list of all the links that have been visited
+        '''
         return self.__visited_urls
 
     def get_allowed_urls(self):
+        '''
+        Returns the list of all the urls that can be crawled
+        '''
         return self.__allowed_urls
 
     def get_urls_to_visit(self):
+        '''
+        Returns the temporary list of all links found on a given page
+        '''
         return self.__urls_to_visit
 
-    def download_url(self, url):
+    @staticmethod
+    def get_html_from_url(url):
+        '''
+        Gets the text of the web page for a given URL
+        '''
         return requests.get(url).text
 
     def get_linked_urls(self, url, html):
+        '''
+        Find all the links in a HTML page
+        '''
         soup = BeautifulSoup(html, 'html.parser')
         for link in soup.find_all('a'):
             path = link.get('href')
@@ -58,13 +75,25 @@ class Crawler:
         rp.set_url(link)
         rp.read()
         return rp.can_fetch("*", url)
+
+    @staticmethod
+    def get_homepage_url(url):
+        scheme = urlparse(url).scheme
+        domain = urlparse(url).netloc
+        homepage_url = scheme + "://" + domain + "/"
+        return homepage_url
     
     @staticmethod
     def is_valid_url(url):
-        # scheme = urlparse(url).scheme
-        return url.startswith(("https", "http"))
+        '''
+        Check if the url is valid
+        '''
+        return validators.url(str(url))
 
     def add_allowed_urls(self, url):
+        '''
+        Add a link to the list of crawled URLs if not already in it.
+        '''
         if url not in self.__allowed_urls:
             self.__allowed_urls.append(url)
     
@@ -72,13 +101,19 @@ class Crawler:
         if url not in self.__visited_urls and url not in self.__urls_to_visit:
             self.__urls_to_visit.append(url)
 
+    def get_sitemap_from_url(self):
+        pass
+
     def crawl(self, url, wait_time):
-        html = self.download_url(url)
+        html = self.get_html_from_url(url)
         for url in self.get_linked_urls(url, html):
             self.add_url_to_visit(url)
-            
+
+        # politeness: waiting before crawling next url 
         logging.info(f'Waiting {wait_time} seconds')
         sleep(wait_time)
+
+        # add to crawled URLs if it is a valid URL
         is_valid = self.is_valid_url(url)
         if is_valid:
             self.add_allowed_urls(url=url)
@@ -102,4 +137,3 @@ class Crawler:
         print(len(self.__urls_to_visit) + len(self.__visited_urls), ' links found.')
         print(len(self.__visited_urls), ' links visited.')
         print(len(self.__allowed_urls), ' links crawled.')
-        sleep(5)
