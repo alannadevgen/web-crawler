@@ -14,6 +14,7 @@ logging.basicConfig(
     format='%(asctime)s %(levelname)s:%(message)s',
     level=logging.INFO)
 
+
 class Crawler:
 
     def __init__(self, urls=[], max_url=os.environ.get("MAX_URL"), wait_time=5):
@@ -22,7 +23,7 @@ class Crawler:
         self.__urls_to_visit = urls
         self.__MAX_URL = int(max_url)
         self.wait_time = wait_time
-    
+
     def get_visited_urls(self):
         '''
         Returns the list of all the links that have been visited
@@ -63,7 +64,7 @@ class Crawler:
     def is_crawlable(url):
         '''
         Check if a url can be crawled or not
-        
+
         Returns
         -------
         bool : True if the url can be crawled, False if not.
@@ -82,7 +83,7 @@ class Crawler:
         domain = urlparse(url).netloc
         homepage_url = scheme + "://" + domain + "/"
         return homepage_url
-    
+
     @staticmethod
     def is_valid_url(url):
         '''
@@ -96,7 +97,7 @@ class Crawler:
         '''
         if url not in self.__allowed_urls:
             self.__allowed_urls.append(url)
-    
+
     def add_url_to_visit(self, url):
         if url not in self.__visited_urls and url not in self.__urls_to_visit:
             self.__urls_to_visit.append(url)
@@ -109,7 +110,7 @@ class Crawler:
         for url in self.get_linked_urls(url, html):
             self.add_url_to_visit(url)
 
-        # politeness: waiting before crawling next url 
+        # politeness: waiting before crawling next url
         logging.info(f'Waiting {wait_time} seconds')
         sleep(wait_time)
 
@@ -132,8 +133,8 @@ class Crawler:
                 logging.exception(f'Failed to crawl: {url}')
             finally:
                 self.__visited_urls.append(url)
-        
-        print()
-        print(len(self.__urls_to_visit) + len(self.__visited_urls), ' links found.')
-        print(len(self.__visited_urls), ' links visited.')
-        print(len(self.__allowed_urls), ' links crawled.')
+
+    def __str__(self) -> str:
+        return (f"{len(self.__urls_to_visit) + len(self.__visited_urls)} links found\n"
+                f"{len(self.__visited_urls)} links visited\n"
+                f"{len(self.__allowed_urls)} links crawled")
