@@ -8,7 +8,7 @@ The crawler has to respect a simple politeness rule: wait five seconds before do
 
 First, you will need to clone the repo.
 ```bash
-git clone https://github.com/alannagenin/web-crawlergit
+git clone https://github.com/alannagenin/web-crawler.git
 cd web-crawler
 ```
 
