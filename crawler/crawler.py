@@ -9,6 +9,7 @@ from urllib.robotparser import RobotFileParser
 from usp.tree import sitemap_tree_for_homepage
 import validators
 load_dotenv()
+from crawler.utils import Utils
 
 
 logging.basicConfig(
@@ -26,12 +27,15 @@ class Crawler:
     ):
         self.__visited_urls = []
         self.__visited_sitemaps = []
-        self.__allowed_urls = []
+        self.__crawled_urls = []
         self.__urls_to_visit = urls
         self.__MAX_URL = int(max_url)
         if wait_time < 5:
             wait_time = 5
         self.wait_time = wait_time
+        self.homepage_fail = 0
+        self.sitemap_fail = 0
+        self.crawl_fail = 0
 
     def get_visited_urls(self):
         '''
@@ -39,11 +43,11 @@ class Crawler:
         '''
         return self.__visited_urls
 
-    def get_allowed_urls(self):
+    def get_crawled_urls(self):
         '''
         Returns the list of all the urls that can be crawled
         '''
-        return self.__allowed_urls
+        return self.__crawled_urls
 
     def get_urls_to_visit(self):
         '''
@@ -57,8 +61,7 @@ class Crawler:
         '''
         return self.__visited_sitemaps
 
-    @staticmethod
-    def get_html_from_url(url):
+    def get_html_from_url(self, url):
         '''
         Gets the text of the web page for a given URL
         '''
@@ -66,17 +69,20 @@ class Crawler:
             return requests.get(url).text
         except Exception:
             logging.exception(f'URL {url} not found')
+            self.homepage_fail += 1
 
     def get_linked_urls(self, url, html):
         '''
         Find all the links in a HTML page
         '''
         soup = BeautifulSoup(html, 'html.parser')
+        links = list()
         for link in soup.find_all('a'):
             path = link.get('href')
-            if path and path.startswith('/'):
+            if path and path.startswith('http'):
                 path = urljoin(url, path)
-            yield path
+                links.append(path)
+        return links
 
     @staticmethod
     def is_crawlable(url):
@@ -109,12 +115,12 @@ class Crawler:
         '''
         return validators.url(str(url))
 
-    def add_allowed_urls(self, url):
+    def add_crawled_urls(self, url):
         '''
         Add a link to the list of crawled URLs if not already in it.
         '''
-        if url not in self.__allowed_urls:
-            self.__allowed_urls.append(url)
+        if url not in self.__crawled_urls:
+            self.__crawled_urls.append(url)
 
     def add_url_to_visit(self, url):
         if url not in self.__visited_urls and url not in self.__urls_to_visit:
@@ -133,7 +139,7 @@ class Crawler:
         is_valid = self.is_valid_url(url)
         if is_valid:
             # add to crawlable URLs
-            self.add_allowed_urls(url=url)
+            self.add_crawled_urls(url=url)
 
             # politeness: waiting before crawling next url
             logging.info(f'Waiting {wait_time} seconds')
@@ -148,8 +154,16 @@ class Crawler:
 
     def run(self):
         start_time = time()
-        while self.__urls_to_visit and len(self.__allowed_urls) < self.__MAX_URL:
+        while self.__urls_to_visit and len(self.__crawled_urls) < self.__MAX_URL:
             url = self.__urls_to_visit.pop(0)
+
+            # use sitemap to crawl
+            try:
+                self.get_sitemap_from_url(url)
+            except Exception:
+                logging.exception(f'Failed to crawl {url} from sitemap')
+                self.sitemap_fail += 1
+
             logging.info(f'Crawling {url}')
             try:
                 is_crawlable = self.is_crawlable(url)
@@ -157,10 +171,16 @@ class Crawler:
                     self.crawl(url, wait_time=self.wait_time)
                 else:
                     logging.warning(f'URL {url} could not be crawled')
+                    self.crawl_fail += 1
             except Exception:
-                logging.exception(f'Failed to crawl: {url}')
+                logging.exception(f'Failed to crawl {url}')
             finally:
                 self.__visited_urls.append(url)
+
+        # write crawled URLs in txt file
+        toolbox = Utils()
+        toolbox.write_txt_file(path='./crawled_webpages.txt', document=self.__crawled_urls)
+        
         self.__execution_time = time() - start_time
 
     def get_crawler_statistics(self) -> str:
@@ -168,5 +188,5 @@ class Crawler:
             f"Took {round(self.__execution_time, 2)} seconds\n"
             f"{len(self.__urls_to_visit) + len(self.__visited_urls)} links found\n"
             f"{len(self.__visited_urls)} links visited\n"
-            f"{len(self.__allowed_urls)} links crawled"
+            f"{len(self.__crawled_urls)} links crawled"
             )
