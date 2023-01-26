@@ -20,14 +20,13 @@ pip install -r requirements.txt
 ```
 Before lanching the crawler, you should create an `.env` file containing the default values:
 ```
-URL=https://ensai.fr/
+URL = https://ensai.fr/
 MAX_URL = 50
 ```
 
 Finally, we will launch the crawler:
 ```python
-python3 -m main
-# or python3 main.py
+python3 main.py
 ```
 
 ## Areas of improvement
@@ -36,4 +35,4 @@ Get the crawler to multi-thread.
 
 ## Contributors
 
-Alanna DEVLIN-GENIN
+[Alanna DEVLIN-GENIN](https://github.com/alannagenin/)
