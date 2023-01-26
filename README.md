@@ -31,8 +31,18 @@ python3 main.py --help
 # with default parameters
 python3 main.py
 # with specified parameters
-python3 main.py --start_point "https://ensai.fr" --max_url 2
+python3 main.py --start_point "https://www.ensae.fr/" --max_url 100
 ```
+
+## Description of the program
+
+The goal here is to build a simple web crawler, with the purpose of retrieving URLs from a starting URL.
+
+From an input URL that the user enters, the crawler finds other pages to crawl by first analyzing the *robots.txt* file of the requested URL. If this file does not exist, or if it does not contain a sitemap allowing easy retrieval of URLs, the crawler parses the HTML code of the requested URL and retrieves the link tags (`a` tags) found in the code.
+
+The crawler then takes one of the retrieved URLs and starts its scan again, until the program ends. It ends when the web crawler reaches the limit of URLs to be found (limit set by the user), or if it finds no more links to explore.
+
+Once finished, the program writes all the URLs found to a file *crawled_webpages.txt*.
 
 ## Unit tests
 
