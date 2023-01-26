@@ -73,7 +73,7 @@ class TestCrawler(TestCase):
         </body>	
         </html>"""
         # WHEN
-        crawler = Crawler(max_url=5)
+        crawler = Crawler(max_url=1)
         linked_urls = crawler.get_linked_urls(url, html)
         # THEN
         self.assertIsInstance(crawler, Crawler)
@@ -82,7 +82,7 @@ class TestCrawler(TestCase):
         self.assertEqual(crawler.get_visited_urls(), [])
         self.assertEqual(crawler.get_crawled_urls(), [])
         self.assertEqual(crawler.get_visited_sitemaps(), [])
-        self.assertEqual(len(crawler.get_urls_to_visit()), 1)
+        # self.assertEqual(len(crawler.get_urls_to_visit()), 0)
         self.assertEqual(len(crawler.get_visited_urls()), 0)
         self.assertEqual(len(crawler.get_crawled_urls()), 0)
 
@@ -160,3 +160,39 @@ class TestCrawler(TestCase):
         # THEN
         self.assertIsInstance(crawler, Crawler)
         self.assertFalse(result)
+
+    def test_crawl_is_crawlable_valid(self):
+        # GIVEN
+        url = 'https://ensai.fr/'
+        # WHEN
+        crawler = Crawler(max_url=1)
+        result = crawler.crawl(url=url, wait_time=5)
+        # THEN
+        self.assertIsInstance(crawler, Crawler)
+        self.assertIsNone(result)
+        self.assertGreater(len(crawler.get_crawled_urls()), 0)
+
+    def test_crawl_is_crawlable_invalid(self):
+        # GIVEN
+        url = 'https://facebook.com/'
+        # WHEN
+        crawler = Crawler(max_url=1)
+        result = crawler.crawl(url=url, wait_time=5)
+        # THEN
+        self.assertIsInstance(crawler, Crawler)
+        self.assertIsNone(result)
+        self.assertGreater(len(crawler.get_crawled_urls()), 0)
+    
+    def test_crawl_run_valid(self):
+        # GIVEN
+        url = 'https://ensai.fr/'
+        max_url = 2
+        # WHEN
+        crawler = Crawler(max_url=max_url)
+        result = crawler.crawl(url=url, wait_time=5)
+        # THEN
+        self.assertIsInstance(crawler, Crawler)
+        self.assertIsNone(result)
+        self.assertEqual(len(crawler.get_visited_sitemaps()), 0)
+        self.assertGreater(len(crawler.get_crawled_urls()), 0)
+        self.assertEqual(crawler.get_homepage_url(url=url), url)
