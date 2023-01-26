@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import logging
 import os
 import requests
-from time import sleep
+from time import sleep, time
 from urllib.parse import urljoin, urlparse
 from urllib.robotparser import RobotFileParser
 from usp.tree import sitemap_tree_for_homepage
@@ -18,12 +18,19 @@ logging.basicConfig(
 
 class Crawler:
 
-    def __init__(self, urls=[], max_url=os.environ.get("MAX_URL"), wait_time=5):
+    def __init__(
+        self,
+        urls=[],
+        max_url=os.environ.get("MAX_URL"),
+        wait_time=5
+    ):
         self.__visited_urls = []
         self.__visited_sitemaps = []
         self.__allowed_urls = []
         self.__urls_to_visit = urls
         self.__MAX_URL = int(max_url)
+        if wait_time < 5:
+            wait_time = 5
         self.wait_time = wait_time
 
     def get_visited_urls(self):
@@ -55,7 +62,10 @@ class Crawler:
         '''
         Gets the text of the web page for a given URL
         '''
-        return requests.get(url).text
+        try:
+            return requests.get(url).text
+        except Exception:
+            logging.exception(f'URL {url} not found')
 
     def get_linked_urls(self, url, html):
         '''
@@ -119,35 +129,44 @@ class Crawler:
             self.__visited_sitemaps.append(homepage)
 
     def crawl(self, url, wait_time):
+        # add to crawled URLs if it is a valid URL
+        is_valid = self.is_valid_url(url)
+        if is_valid:
+            # add to crawlable URLs
+            self.add_allowed_urls(url=url)
+
+            # politeness: waiting before crawling next url
+            logging.info(f'Waiting {wait_time} seconds')
+            sleep(wait_time)
+        else:
+            logging.warning(f'Invalid URL for {url}')
+
+        # add links found in page to URLs to visit
         html = self.get_html_from_url(url)
         for url in self.get_linked_urls(url, html):
             self.add_url_to_visit(url)
 
-        # politeness: waiting before crawling next url
-        logging.info(f'Waiting {wait_time} seconds')
-        sleep(wait_time)
-
-        # add to crawled URLs if it is a valid URL
-        is_valid = self.is_valid_url(url)
-        if is_valid:
-            self.add_allowed_urls(url=url)
-
     def run(self):
+        start_time = time()
         while self.__urls_to_visit and len(self.__allowed_urls) < self.__MAX_URL:
             url = self.__urls_to_visit.pop(0)
             logging.info(f'Crawling {url}')
             try:
                 is_crawlable = self.is_crawlable(url)
                 if is_crawlable:
-                    self.crawl(url, wait_time=2)
+                    self.crawl(url, wait_time=self.wait_time)
                 else:
                     logging.warning(f'URL {url} could not be crawled')
             except Exception:
                 logging.exception(f'Failed to crawl: {url}')
             finally:
                 self.__visited_urls.append(url)
+        self.__execution_time = time() - start_time
 
     def get_crawler_statistics(self) -> str:
-        return (f"{len(self.__urls_to_visit) + len(self.__visited_urls)} links found\n"
-                f"{len(self.__visited_urls)} links visited\n"
-                f"{len(self.__allowed_urls)} links crawled")
+        return (
+            f"Took {round(self.__execution_time, 2)} seconds\n"
+            f"{len(self.__urls_to_visit) + len(self.__visited_urls)} links found\n"
+            f"{len(self.__visited_urls)} links visited\n"
+            f"{len(self.__allowed_urls)} links crawled"
+            )
