@@ -6,7 +6,7 @@ class TestCrawler(TestCase):
         # GIVEN
         url = "https://ensai.fr"
         # WHEN
-        crawler = Crawler()
+        crawler = Crawler(max_url=5)
         result = crawler.get_html_from_url(url=url)
         # THEN
         self.assertIsInstance(crawler, Crawler)
@@ -25,7 +25,7 @@ class TestCrawler(TestCase):
         # GIVEN
         url = "https://eennssaaii.fr"
         # WHEN
-        crawler = Crawler()
+        crawler = Crawler(max_url=5)
         result = crawler.get_html_from_url(url=url)
         # THEN
         self.assertIsInstance(crawler, Crawler)
@@ -51,7 +51,7 @@ class TestCrawler(TestCase):
         </body>	
         </html>"""
         # WHEN
-        crawler = Crawler()
+        crawler = Crawler(max_url=5)
         linked_urls = crawler.get_linked_urls(url, html)
         # THEN
         self.assertEqual(linked_urls, ['https://test.fr/example.html'])
