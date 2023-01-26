@@ -24,12 +24,19 @@ URL = https://ensai.fr/
 MAX_URL = 50
 ```
 
-Finally, we will launch the crawler:
+Finally, to launch the crawler there are several options:
 ```python
+# to get some help
+python3 main.py --help
+# with default parameters
 python3 main.py
+# with specified parameters
+python3 main.py --start_point "https://ensai.fr" --max_url 2
 ```
 
-To launch testing:
+## Unit tests
+
+To launch tests:
 ```python
 python3 -m unittest
 ```
