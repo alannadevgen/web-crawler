@@ -17,8 +17,6 @@ def run_crawler(start_point, max_url):
     stats = crawler.get_crawler_statistics()
     print()
     print(stats)
-    print()
-    print(crawler.get_crawled_urls())
 
 if __name__ == '__main__':
     run_crawler()
