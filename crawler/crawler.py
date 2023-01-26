@@ -6,6 +6,7 @@ import requests
 from time import sleep
 from urllib.parse import urljoin, urlparse
 from urllib.robotparser import RobotFileParser
+from usp.tree import sitemap_tree_for_homepage
 import validators
 load_dotenv()
 
@@ -19,6 +20,7 @@ class Crawler:
 
     def __init__(self, urls=[], max_url=os.environ.get("MAX_URL"), wait_time=5):
         self.__visited_urls = []
+        self.__visited_sitemaps = []
         self.__allowed_urls = []
         self.__urls_to_visit = urls
         self.__MAX_URL = int(max_url)
@@ -41,6 +43,12 @@ class Crawler:
         Returns the temporary list of all links found on a given page
         '''
         return self.__urls_to_visit
+
+    def get_visited_sitemaps(self):
+        '''
+        Returns the list of all sitemaps that have been visited
+        '''
+        return self.__visited_sitemaps
 
     @staticmethod
     def get_html_from_url(url):
@@ -102,8 +110,13 @@ class Crawler:
         if url not in self.__visited_urls and url not in self.__urls_to_visit:
             self.__urls_to_visit.append(url)
 
-    def get_sitemap_from_url(self):
-        pass
+    def get_sitemap_from_url(self, url):
+        homepage = self.get_homepage_url(url)
+        if homepage not in self.__visited_sitemaps:
+            sitemap_tree = sitemap_tree_for_homepage(homepage_url=homepage)
+            for page in sitemap_tree.all_pages():
+                self.add_url_to_visit(page.url)
+            self.__visited_sitemaps.append(homepage)
 
     def crawl(self, url, wait_time):
         html = self.get_html_from_url(url)
@@ -134,7 +147,7 @@ class Crawler:
             finally:
                 self.__visited_urls.append(url)
 
-    def __str__(self) -> str:
+    def get_crawler_statistics(self) -> str:
         return (f"{len(self.__urls_to_visit) + len(self.__visited_urls)} links found\n"
                 f"{len(self.__visited_urls)} links visited\n"
                 f"{len(self.__allowed_urls)} links crawled")
