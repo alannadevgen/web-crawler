@@ -82,7 +82,7 @@ class TestCrawler(TestCase):
         self.assertEqual(crawler.get_visited_urls(), [])
         self.assertEqual(crawler.get_crawled_urls(), [])
         self.assertEqual(crawler.get_visited_sitemaps(), [])
-        self.assertEqual(len(crawler.get_urls_to_visit()), 0)
+        self.assertEqual(len(crawler.get_urls_to_visit()), 1)
         self.assertEqual(len(crawler.get_visited_urls()), 0)
         self.assertEqual(len(crawler.get_crawled_urls()), 0)
 
@@ -120,4 +120,14 @@ class TestCrawler(TestCase):
         # THEN
         self.assertIsInstance(crawler, Crawler)
         self.assertFalse(result)
+
+    def test_get_homepage_url(self):
+        # GIVEN
+        url = 'https://ensai.fr/double-diplome-universite-rome-sapienza/'
+        # WHEN
+        crawler = Crawler(max_url=1)
+        result = crawler.get_homepage_url(url=url)
+        # THEN
+        self.assertIsInstance(crawler, Crawler)
+        self.assertEqual(result, 'https://ensai.fr/')
         
