@@ -85,7 +85,7 @@ class TestCrawler(TestCase):
         # GIVEN
         url = 'https://test.fr/example.html'
         # WHEN
-        crawler = Crawler()
+        crawler = Crawler(max_url=1)
         crawler.add_url_to_visit(url)
         # THEN
         self.assertEqual(crawler.get_urls_to_visit(), [url])
