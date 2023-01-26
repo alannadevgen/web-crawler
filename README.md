@@ -29,10 +29,16 @@ Finally, we will launch the crawler:
 python3 main.py
 ```
 
+To launch testing:
+```python
+python3 -m unittest
+```
+
+
 ## Areas of improvement
 
 Get the crawler to multi-thread.
 
-## Contributors
+## Contributor
 
 [Alanna DEVLIN-GENIN](https://github.com/alannagenin/)
