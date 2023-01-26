@@ -18,12 +18,11 @@ class TestCrawler(TestCase):
         self.assertEqual(crawler.homepage_fail, 0)
         self.assertEqual(crawler.get_visited_urls(), [])
         self.assertEqual(crawler.get_crawled_urls(), [])
-        self.assertEqual(crawler.get_urls_to_visit(), [])
         self.assertEqual(crawler.get_visited_sitemaps(), [])
 
     def test_get_html_invalid(self):
         # GIVEN
-        url = "https://eennssaaii.fr"
+        url = "https://mytinyurl.com"
         # WHEN
         crawler = Crawler(max_url=5)
         result = crawler.get_html_from_url(url=url)
@@ -34,10 +33,9 @@ class TestCrawler(TestCase):
         self.assertEqual(crawler.homepage_fail, 1)
         self.assertEqual(crawler.get_visited_urls(), [])
         self.assertEqual(crawler.get_crawled_urls(), [])
-        self.assertEqual(crawler.get_urls_to_visit(), [])
         self.assertEqual(crawler.get_visited_sitemaps(), [])
 
-    def test_get_linked_urls(self):
+    def test_get_linked_urls_valid(self):
         # GIVEN
         url = 'https://test.fr/'
         html = """<!DOCTYPE html>
@@ -55,8 +53,41 @@ class TestCrawler(TestCase):
         linked_urls = crawler.get_linked_urls(url, html)
         # THEN
         self.assertEqual(linked_urls, ['https://test.fr/example.html'])
+        self.assertEqual(len(linked_urls), 1)
         self.assertEqual(crawler.get_visited_urls(), [])
         self.assertEqual(crawler.get_crawled_urls(), [])
-        self.assertEqual(crawler.get_urls_to_visit(), [])
         self.assertEqual(crawler.get_visited_sitemaps(), [])
 
+    def test_get_linked_urls_invalid(self):
+        # GIVEN
+        url = 'https://test.fr/'
+        html = """<!DOCTYPE html>
+        <html>   
+        <head>
+            <title>Example</title>
+        </head>
+            
+        <body>
+            Some text
+        </body>	
+        </html>"""
+        # WHEN
+        crawler = Crawler(max_url=5)
+        linked_urls = crawler.get_linked_urls(url, html)
+        # THEN
+        self.assertEqual(linked_urls, [])
+        self.assertEqual(len(linked_urls), 0)
+        self.assertEqual(crawler.get_visited_urls(), [])
+        self.assertEqual(crawler.get_crawled_urls(), [])
+        self.assertEqual(crawler.get_visited_sitemaps(), [])
+
+    def test_add_url_to_visit_valid(self):
+        # GIVEN
+        url = 'https://test.fr/example.html'
+        # WHEN
+        crawler = Crawler()
+        crawler.add_url_to_visit(url)
+        # THEN
+        self.assertEqual(crawler.get_urls_to_visit(), [url])
+        self.assertEqual(crawler.get_visited_urls(), [])
+        self.assertEqual(crawler.get_crawled_urls(), [])
