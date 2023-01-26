@@ -209,7 +209,7 @@ class Crawler:
         '''
         return (
             f"--- Statistics ---\n"
-            f"Took {round(self.__execution_time, 2)} seconds\n"
+            f"Took {round(self.__execution_time, 2)} seconds (approx. {round(self.__execution_time/60)} minutes)\n"
             f"{len(self.__urls_to_visit) + len(self.__visited_urls)} links found\n"
             f"{len(self.__visited_urls)} links visited\n"
             f"{len(self.__crawled_urls)} links crawled\n"
