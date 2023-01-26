@@ -84,37 +84,6 @@ class Crawler:
                 links.append(path)
         return links
 
-    @staticmethod
-    def is_crawlable(url):
-        '''
-        Check if a url can be crawled or not
-
-        Returns
-        -------
-        bool : True if the url can be crawled, False if not.
-        '''
-        rp = RobotFileParser()
-        scheme = urlparse(url).scheme
-        domain = urlparse(url).netloc
-        link = scheme + "://" + domain + "/robots.txt"
-        rp.set_url(link)
-        rp.read()
-        return rp.can_fetch("*", url)
-
-    @staticmethod
-    def get_homepage_url(url):
-        scheme = urlparse(url).scheme
-        domain = urlparse(url).netloc
-        homepage_url = scheme + "://" + domain + "/"
-        return homepage_url
-
-    @staticmethod
-    def is_valid_url(url):
-        '''
-        Check if the url is valid
-        '''
-        return validators.url(str(url))
-
     def add_crawled_urls(self, url):
         '''
         Add a link to the list of crawled URLs if not already in it.
@@ -134,7 +103,53 @@ class Crawler:
                 self.add_url_to_visit(page.url)
             self.__visited_sitemaps.append(homepage)
 
+    @staticmethod
+    def is_crawlable(url):
+        '''
+        Check if a url can be crawled or not
+
+        Returns
+        -------
+        bool : True if the url can be crawled, False if not.
+        '''
+        rp = RobotFileParser()
+        scheme = urlparse(url).scheme
+        domain = urlparse(url).netloc
+        link = scheme + "://" + domain + "/robots.txt"
+        rp.set_url(link)
+        rp.read()
+        return rp.can_fetch("*", url)
+
+    @staticmethod
+    def get_homepage_url(url):
+        '''
+        Get the homepage url from an url
+
+        Example
+        -------
+        >>> url = "https://ensai.fr/double-diplome-universite-rome-sapienza/"
+        >>> crawler = Crawler()
+        >>> homepage = crawler.get_homepage(url)
+        >>> print(homepage)
+        "https://ensai.fr/"
+        '''
+        scheme = urlparse(url).scheme
+        domain = urlparse(url).netloc
+        homepage_url = scheme + "://" + domain + "/"
+        return homepage_url
+
+    @staticmethod
+    def is_valid_url(url):
+        '''
+        Check if the url is valid
+        '''
+        return validators.url(str(url))
+
     def crawl(self, url, wait_time):
+        '''
+        Add links that are valid to the crawlable list and linked URLS to __urls_to_visit list
+        + rule of politeness
+        '''
         # add to crawled URLs if it is a valid URL
         is_valid = self.is_valid_url(url)
         if is_valid:
@@ -153,6 +168,11 @@ class Crawler:
             self.add_url_to_visit(url)
 
     def run(self):
+        '''
+        Performs the crawling. First it checks if there is any sitemap.
+        Then it fetches all the possible URLs found in the document.
+        Finally, every crawlable URLs is saved in a list then output in a txt file.
+        '''
         start_time = time()
         while self.__urls_to_visit and len(self.__crawled_urls) < self.__MAX_URL:
             url = self.__urls_to_visit.pop(0)
@@ -184,9 +204,16 @@ class Crawler:
         self.__execution_time = time() - start_time
 
     def get_crawler_statistics(self) -> str:
+        '''
+        Returns a string containing information about the crawling.
+        '''
         return (
+            f"--- Statistics ---\n"
             f"Took {round(self.__execution_time, 2)} seconds\n"
             f"{len(self.__urls_to_visit) + len(self.__visited_urls)} links found\n"
             f"{len(self.__visited_urls)} links visited\n"
-            f"{len(self.__crawled_urls)} links crawled"
+            f"{len(self.__crawled_urls)} links crawled\n"
+            f"{self.homepage_fail} homepage failed\n"
+            f"{self.sitemap_fail} sitemap failed\n"
+            f"{self.crawl_fail} crawl failed"
             )

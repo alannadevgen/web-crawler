@@ -150,3 +150,13 @@ class TestCrawler(TestCase):
         # THEN
         self.assertIsInstance(crawler, Crawler)
         self.assertFalse(result)
+
+    def test_is_valid_url_invalid(self):
+        # GIVEN
+        url = 'ensai.fr/'
+        # WHEN
+        crawler = Crawler(max_url=1)
+        result = crawler.is_valid_url(url=url)
+        # THEN
+        self.assertIsInstance(crawler, Crawler)
+        self.assertFalse(result)
